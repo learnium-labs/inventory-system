@@ -12,29 +12,58 @@ async function getSwal() {
 
 const CATEGORIES = ["Elektronik", "Furniture", "Pakaian", "Makanan", "Lainnya"];
 const SATUAN = ["unit", "pcs", "box", "kg", "liter", "meter"];
+const FORMATTED_NUMBER_FIELDS = ["stok", "harga_beli", "harga_jual", "stok_min"];
+
+function formatThousands(value) {
+  const digitsOnly = String(value ?? "").replace(/\D/g, "");
+  if (!digitsOnly) return "";
+
+  return Number(digitsOnly).toLocaleString("id-ID");
+}
+
+function parseFormattedNumber(value) {
+  const digitsOnly = String(value ?? "").replace(/\D/g, "");
+  return Number(digitsOnly || 0);
+}
+
+function buildInitialForm(data) {
+  const base = {
+    kode_barang: "",
+    nama: "",
+    kategori: "",
+    satuan: "",
+    harga_beli: "",
+    harga_jual: "",
+    stok: "",
+    stok_min: "",
+  };
+
+  const merged = { ...base, ...(data || {}) };
+
+  FORMATTED_NUMBER_FIELDS.forEach((field) => {
+    merged[field] = formatThousands(merged[field]);
+  });
+
+  return merged;
+}
 
 export default function MasterBarangForm({ mode = "add", initialData = null }) {
   const router = useRouter();
   const isEditMode = mode === "edit";
 
-  const [form, setForm] = useState(
-    initialData || {
-      kode_barang: "",
-      nama: "",
-      kategori: "",
-      satuan: "",
-      harga_beli: "",
-      harga_jual: "",
-      stok: "",
-      stok_min: "",
-    }
-  );
+  const [form, setForm] = useState(buildInitialForm(initialData));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   function onChangeForm(e) {
     const { name, value } = e.target;
+
+    if (FORMATTED_NUMBER_FIELDS.includes(name)) {
+      setForm((prev) => ({ ...prev, [name]: formatThousands(value) }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
@@ -81,10 +110,10 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
         nama: form.nama.trim(),
         kategori: form.kategori,
         satuan: form.satuan,
-        harga_beli: Number(form.harga_beli) || 0,
-        harga_jual: Number(form.harga_jual) || 0,
-        stok: Number(form.stok) || 0,
-        stok_min: Number(form.stok_min) || 0,
+        harga_beli: parseFormattedNumber(form.harga_beli),
+        harga_jual: parseFormattedNumber(form.harga_jual),
+        stok: parseFormattedNumber(form.stok),
+        stok_min: parseFormattedNumber(form.stok_min),
       };
 
       if (isEditMode) {
@@ -186,7 +215,8 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
 
             <FormField label="Stok Awal">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 name="stok"
                 value={form.stok}
                 onChange={onChangeForm}
@@ -198,7 +228,8 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
 
             <FormField label="Harga Beli (Rp)">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 name="harga_beli"
                 value={form.harga_beli}
                 onChange={onChangeForm}
@@ -210,7 +241,8 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
 
             <FormField label="Harga Jual (Rp)">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 name="harga_jual"
                 value={form.harga_jual}
                 onChange={onChangeForm}
@@ -222,7 +254,8 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
 
             <FormField label="Stok Minimum">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 name="stok_min"
                 value={form.stok_min}
                 onChange={onChangeForm}

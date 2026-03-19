@@ -16,6 +16,14 @@ const ACTIONS = {
   remove: "master-delete",
 };
 
+function getCurrentTimestamp() {
+  return Utilities.formatDate(
+    new Date(),
+    Session.getScriptTimeZone(),
+    "yyyy-MM-dd HH:mm:ss",
+  );
+}
+
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "";
 
@@ -127,6 +135,10 @@ function addMasterBarang(data) {
     newData.kode_barang = generateKodeBarang();
   }
 
+  if (!newData.created_at) {
+    newData.created_at = getCurrentTimestamp();
+  }
+
   const row = headers.map(function (header) {
     return newData[header] !== undefined ? newData[header] : "";
   });
@@ -167,7 +179,7 @@ function updateMasterBarang(data) {
   const existingRow = values[targetRowIndex - 1];
   const updateData = mapRowToObject(headerRow, existingRow);
   Object.keys(data).forEach(function (key) {
-    if (key !== "kode_barang") {
+    if (key !== "kode_barang" && key !== "created_at") {
       updateData[key] = data[key];
     }
   });

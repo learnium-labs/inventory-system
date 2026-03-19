@@ -15,6 +15,17 @@ function normalizeNumber(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (!Number.isNaN(date.getTime())) {
+    return date.toLocaleString("id-ID");
+  }
+
+  return String(value);
+}
+
 const PAGE_SIZE = 15;
 
 export default function MasterBarangList() {
@@ -69,7 +80,18 @@ export default function MasterBarangList() {
       );
     }
 
-    return result;
+    return [...result].sort((left, right) => {
+      const leftTime = new Date(left.created_at || 0).getTime();
+      const rightTime = new Date(right.created_at || 0).getTime();
+
+      if (leftTime !== rightTime) {
+        return rightTime - leftTime;
+      }
+
+      const leftCode = Number(String(left.kode_barang || "").replace(/\D/g, "")) || 0;
+      const rightCode = Number(String(right.kode_barang || "").replace(/\D/g, "")) || 0;
+      return rightCode - leftCode;
+    });
   }, [items, selectedCategory, searchTerm]);
 
   const stockSummary = useMemo(() => {
@@ -369,6 +391,10 @@ export default function MasterBarangList() {
               <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
                 <span className="font-medium text-gray-500">Satuan</span>
                 <span className="font-semibold text-gray-900">{selectedItem.satuan || "-"}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
+                <span className="font-medium text-gray-500">Dibuat Pada</span>
+                <span className="font-semibold text-gray-900">{formatDateTime(selectedItem.created_at)}</span>
               </div>
               <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
                 <span className="font-medium text-gray-500">Harga Beli</span>
