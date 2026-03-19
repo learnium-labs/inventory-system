@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { addMasterBarang, updateMasterBarang } from "@/lib/masterBarangApi";
 import { ChevronLeft, Check } from "lucide-react";
 
+async function getSwal() {
+  const module = await import("sweetalert2");
+  return module.default;
+}
+
 const CATEGORIES = ["Elektronik", "Furniture", "Pakaian", "Makanan", "Lainnya"];
 const SATUAN = ["unit", "pcs", "box", "kg", "liter", "meter"];
 
@@ -27,7 +32,6 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
 
   function onChangeForm(e) {
     const { name, value } = e.target;
@@ -37,7 +41,6 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
-    setMessage("");
 
     // Validation
     if (!form.nama.trim()) {
@@ -50,6 +53,24 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
     }
     if (!form.satuan) {
       setError("Satuan harus dipilih.");
+      return;
+    }
+
+    const Swal = await getSwal();
+
+    const confirmResult = await Swal.fire({
+      title: isEditMode ? "Simpan perubahan?" : "Tambah data barang?",
+      text: isEditMode
+        ? "Perubahan data akan disimpan."
+        : "Data barang baru akan ditambahkan.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: isEditMode ? "Ya, simpan" : "Ya, tambah",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#2563eb",
+    });
+
+    if (!confirmResult.isConfirmed) {
       return;
     }
 
@@ -68,22 +89,24 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
 
       if (isEditMode) {
         await updateMasterBarang(initialData.kode_barang, payload);
-        setMessage("Data barang berhasil diperbarui.");
-        setTimeout(() => router.push("/master-barang"), 1500);
+        await Swal.fire({
+          title: "Berhasil",
+          text: "Data barang berhasil diperbarui.",
+          icon: "success",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#2563eb",
+        });
+        router.push("/master-barang");
       } else {
         await addMasterBarang(payload);
-        setMessage("Data barang berhasil ditambahkan.");
-        setForm({
-          kode_barang: "",
-          nama: "",
-          kategori: "",
-          satuan: "",
-          harga_beli: "",
-          harga_jual: "",
-          stok: "",
-          stok_min: "",
+        await Swal.fire({
+          title: "Berhasil",
+          text: "Data barang berhasil ditambahkan.",
+          icon: "success",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#2563eb",
         });
-        setTimeout(() => router.push("/master-barang"), 1500);
+        router.push("/master-barang");
       }
     } catch (err) {
       setError(err.message || `Gagal ${isEditMode ? "memperbarui" : "menambahkan"} data barang.`);
@@ -111,7 +134,6 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
       </div>
 
       <div className="p-6">
-        {message && <p className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</p>}
         {error && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
         <form onSubmit={onSubmit} className="space-y-6">

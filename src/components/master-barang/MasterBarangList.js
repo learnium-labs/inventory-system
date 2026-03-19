@@ -5,19 +5,26 @@ import Link from "next/link";
 import { getMasterBarang, deleteMasterBarang } from "@/lib/masterBarangApi";
 import { Plus, Edit2, Trash2, Search, Eye } from "lucide-react";
 
+async function getSwal() {
+  const module = await import("sweetalert2");
+  return module.default;
+}
+
 function normalizeNumber(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+const PAGE_SIZE = 15;
+
 export default function MasterBarangList() {
   const [items, setItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   async function loadMasterBarang() {
     setIsLoading(true);
@@ -73,16 +80,51 @@ export default function MasterBarangList() {
     return { totalProduk, totalStok, hampirHabis };
   }, [filteredItems]);
 
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  }, [filteredItems.length]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return filteredItems.slice(start, end);
+  }, [filteredItems, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   async function onDelete(kodeBarang) {
-    const confirmed = window.confirm("Hapus data barang ini?");
-    if (!confirmed) return;
+    const Swal = await getSwal();
+    const result = await Swal.fire({
+      title: "Hapus data?",
+      text: "Data yang dihapus tidak dapat dikembalikan.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+    });
+
+    if (!result.isConfirmed) return;
 
     setError("");
-    setMessage("");
 
     try {
       await deleteMasterBarang(kodeBarang);
-      setMessage("Data barang berhasil dihapus.");
+      await Swal.fire({
+        title: "Berhasil",
+        text: "Data barang berhasil dihapus.",
+        icon: "success",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#2563eb",
+      });
       await loadMasterBarang();
     } catch (err) {
       setError(err.message || "Gagal menghapus data barang.");
@@ -165,7 +207,6 @@ export default function MasterBarangList() {
           </button>
         </div>
 
-        {message && <p className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</p>}
         {error && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
         <div className="overflow-x-auto">
@@ -184,6 +225,17 @@ export default function MasterBarangList() {
               </tr>
             </thead>
             <tbody>
+              {isLoading && items.length === 0 &&
+                Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={`loading-${index}`} className="border-t border-gray-200">
+                    {Array.from({ length: 9 }).map((__, cellIndex) => (
+                      <td key={`loading-cell-${index}-${cellIndex}`} className="px-4 py-3">
+                        <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+
               {!isLoading && filteredItems.length === 0 && (
                 <tr key="empty-state">
                   <td colSpan={9} className="border-t border-gray-200 py-12 text-center text-gray-500">
@@ -192,13 +244,17 @@ export default function MasterBarangList() {
                 </tr>
               )}
 
-              {filteredItems.map((item, idx) => {
+              {paginatedItems.map((item, idx) => {
                 const stok = normalizeNumber(item.stok);
                 const stokMin = normalizeNumber(item.stok_min);
 
                 return (
-                  <tr key={item.kode_barang} className={`border-t border-gray-200 text-gray-900 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
-                    <TableCell className="font-semibold">{idx + 1}</TableCell>
+                  <tr
+                    key={item.kode_barang}
+                    onClick={() => openDetail(item)}
+                    className={`border-t border-gray-200 text-gray-900 cursor-pointer ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/40`}
+                  >
+                    <TableCell className="font-semibold">{(currentPage - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell className="font-medium">{item.nama}</TableCell>
                     <TableCell>{item.kategori}</TableCell>
                     <TableCell>{item.satuan}</TableCell>
@@ -218,26 +274,36 @@ export default function MasterBarangList() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => openDetail(item)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openDetail(item);
+                          }}
+                          className="inline-flex items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-700 hover:bg-gray-50 transition"
+                          aria-label="Detail"
+                          title="Detail"
                         >
                           <Eye size={14} />
-                          Detail
                         </button>
                         <Link
                           href={`/master-barang/${item.kode_barang}/edit`}
-                          className="inline-flex items-center gap-1 rounded-lg border border-blue-300 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-50 transition"
+                          onClick={(event) => event.stopPropagation()}
+                          className="inline-flex items-center justify-center rounded-lg border border-blue-300 p-2 text-blue-700 hover:bg-blue-50 transition"
+                          aria-label="Edit"
+                          title="Edit"
                         >
                           <Edit2 size={14} />
-                          Edit
                         </Link>
                         <button
                           type="button"
-                          onClick={() => onDelete(item.kode_barang)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-red-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 transition"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDelete(item.kode_barang);
+                          }}
+                          className="inline-flex items-center justify-center rounded-lg border border-red-300 p-2 text-red-700 hover:bg-red-50 transition"
+                          aria-label="Hapus"
+                          title="Hapus"
                         >
                           <Trash2 size={14} />
-                          Hapus
                         </button>
                       </div>
                     </TableCell>
@@ -247,6 +313,38 @@ export default function MasterBarangList() {
             </tbody>
           </table>
         </div>
+
+        {!isLoading && filteredItems.length > 0 && (
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-500">
+              Menampilkan {(currentPage - 1) * PAGE_SIZE + 1} - {Math.min(currentPage * PAGE_SIZE, filteredItems.length)} dari {filteredItems.length} data
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Prev
+              </button>
+
+              <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-700">
+                {currentPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {selectedItem && (
