@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Inventory Management Dashboard
 
-## Getting Started
+Dashboard inventory modern dan responsif dengan design profesional.
 
-First, run the development server:
+**Stack:**
+
+- Frontend: Next.js 16 + Tailwind CSS v4 + DaisyUI
+- Backend: Google Apps Script (`.gs`)
+- Database: Google Sheets
+
+## Fitur UI/UX
+
+- **Sidebar Navigation**: Dark navy sidebar dengan collapse mode (desktop) dan mobile drawer
+- **Top Navbar**: Clean white header dengan search bar, notification icon, dan user profile
+- **Responsive Layout**: Fully responsive untuk mobile, tablet, dan desktop
+- **Theme**: Business theme (light-first) dengan dark mode option
+- **Spacious Design**: Layout yang luas dan breathable untuk kenyamanan mata
+- **Card-based Interface**: Component modern dengan hover effects
+
+## Fitur Utama (MVP)
+
+- **Master Barang**: CRUD lengkap, filter kategori, stock monitoring
+- **Analytics Dashboard**: Ringkasan total produk, stok, dan item hampir habis
+- **Real-time Updates**: Integrasi langsung dengan Apps Script API
+
+## Struktur Penting
+
+- Frontend main page: [src/app/page.js](src/app/page.js)
+- Dashboard shell (layout & state): [src/components/layout/DashboardShell.js](src/components/layout/DashboardShell.js)
+- Sidebar navigation: [src/components/layout/Sidebar.js](src/components/layout/Sidebar.js)
+- Top navbar: [src/components/layout/Navbar.js](src/components/layout/Navbar.js)
+- Master barang CRUD: [src/components/master-barang/MasterBarangPanel.js](src/components/master-barang/MasterBarangPanel.js)
+- API client: [src/lib/masterBarangApi.js](src/lib/masterBarangApi.js)
+- Theme config: [src/app/globals.css](src/app/globals.css)
+- Backend template: [apps-script/master_barang.gs](apps-script/master_barang.gs)
+
+## Setup Frontend
+
+1. Install dependency:
+
+```bash
+npm install
+```
+
+2. Buat file `.env.local`:
+
+```bash
+NEXT_PUBLIC_APPS_SCRIPT_URL=https://script.google.com/macros/s/idDevelopment/exec
+```
+
+3. Jalankan project:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup Google Sheets
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Buat sheet bernama: `master_barang`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Header baris pertama yang disarankan:
 
-## Learn More
+```text
+kode_barang | nama_barang | kategori | harga | ukuran | deskripsi | stok
+```
 
-To learn more about Next.js, take a look at the following resources:
+## API Action (Apps Script)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Semua endpoint menggunakan base URL:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+https://script.google.com/macros/s/idDevelopment/exec
+```
 
-## Deploy on Vercel
+- Get list master data:
+  - `GET ?action=master-get`
+- Get detail by id:
+  - `GET ?action=master-get-by-id&kode_barang=BRG-001`
+- Add data:
+  - `POST ?action=master-add`
+- Update data:
+  - `POST ?action=master-update`
+- Delete data:
+  - `POST ?action=master-delete`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Payload `POST` menggunakan JSON.
