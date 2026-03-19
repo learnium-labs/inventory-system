@@ -45,25 +45,29 @@ export async function getMasterBarang() {
   return Array.isArray(payload.data) ? payload.data : [];
 }
 
+export async function getMasterBarangById(kodeBarang) {
+  const response = await fetch(buildUrl(ACTIONS.getById, { kode_barang: kodeBarang }), {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const payload = await parseResponse(response);
+  return payload.data || payload;
+}
+
 export async function addMasterBarang(data) {
   const response = await fetch(buildUrl(ACTIONS.add), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
   return parseResponse(response);
 }
 
-export async function updateMasterBarang(data) {
+export async function updateMasterBarang(kodeBarang, data) {
   const response = await fetch(buildUrl(ACTIONS.update), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ ...data, kode_barang: kodeBarang }),
   });
 
   return parseResponse(response);
@@ -72,9 +76,6 @@ export async function updateMasterBarang(data) {
 export async function deleteMasterBarang(kodeBarang) {
   const response = await fetch(buildUrl(ACTIONS.remove), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ kode_barang: kodeBarang }),
   });
 

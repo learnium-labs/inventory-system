@@ -1,3 +1,8 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { LayoutGrid, Package, ArrowDown, ArrowUp, BoxIcon, CheckSquare, FileText, X } from "lucide-react";
+
 export default function Sidebar({
   items,
   activeKey,
@@ -5,6 +10,7 @@ export default function Sidebar({
   mobileOpen,
   onCloseMobile,
 }) {
+  const router = useRouter();
   const desktopWidth = collapsed ? "w-20" : "w-72";
 
   return (
@@ -20,6 +26,7 @@ export default function Sidebar({
           collapsed={false}
           isMobile
           onCloseMobile={onCloseMobile}
+          router={router}
         />
       </aside>
 
@@ -35,19 +42,39 @@ export default function Sidebar({
       <aside
         className={`fixed inset-y-0 left-0 z-30 hidden border-r border-gray-700 bg-gray-900 transition-all duration-300 lg:flex lg:flex-col ${desktopWidth}`}
       >
-        <SidebarContent items={items} activeKey={activeKey} collapsed={collapsed} isMobile={false} />
+        <SidebarContent items={items} activeKey={activeKey} collapsed={collapsed} isMobile={false} router={router} />
       </aside>
     </>
   );
 }
 
-function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile }) {
+function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, router }) {
+  const getRouteFromKey = (key) => {
+    const routes = {
+      dashboard: "/",
+      "master-barang": "/master-barang",
+      "stock-masuk": "/stock-masuk",
+      "stock-keluar": "/stock-keluar",
+      "recap-stock": "/recap-stock",
+      "stock-opname": "/stock-opname",
+      laporan: "/laporan",
+    };
+    return routes[key] || "/";
+  };
+
+  const handleMenuClick = (key) => {
+    const route = getRouteFromKey(key);
+    router.push(route);
+    if (isMobile) {
+      onCloseMobile();
+    }
+  };
   return (
     <>
       <div className="flex h-20 items-center justify-between border-b border-gray-700 px-4 py-6">
         <div className={`flex items-center gap-3 ${collapsed ? "mx-auto" : ""}`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400">
-            <GridIcon />
+            <LayoutGrid size={20} />
           </div>
           {!collapsed && (
             <div>
@@ -59,7 +86,7 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile }
 
         {isMobile && (
           <button type="button" onClick={onCloseMobile} className="text-gray-400 hover:text-white" aria-label="Tutup sidebar">
-            <CloseIcon />
+            <X size={20} />
           </button>
         )}
       </div>
@@ -68,12 +95,14 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile }
         <ul className="space-y-1">
           {items.map((item) => {
             const isActive = item.key === activeKey;
-            const isReady = item.key === "master-barang";
+            const isReady = item.key === "master-barang" || item.key === "dashboard";
+            const icon = getMenuIcon(item.key);
 
             return (
               <li key={item.key}>
                 <button
                   type="button"
+                  onClick={() => handleMenuClick(item.key)}
                   className={`group flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
                     isActive
                       ? "bg-blue-600 text-white"
@@ -81,11 +110,11 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile }
                   }`}
                   title={collapsed ? item.label : undefined}
                 >
-                  {collapsed ? (
-                    <DotIcon />
-                  ) : (
+                  <div className="flex-shrink-0">
+                    {icon}
+                  </div>
+                  {!collapsed && (
                     <>
-                      <DotIcon />
                       <span className="flex-1 truncate text-left">{item.label}</span>
                       <span
                         className={`shrink-0 rounded px-2 py-0.5 text-xs font-semibold ${
@@ -108,25 +137,25 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile }
   );
 }
 
-function DotIcon() {
-  return <span className="h-2 w-2 rounded-full bg-current opacity-60" />;
-}
+function getMenuIcon(key) {
+  const iconProps = { size: 18 };
 
-function GridIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8">
-      <path d="M6 6l12 12M6 18L18 6" strokeLinecap="round" />
-    </svg>
-  );
+  switch (key) {
+    case "dashboard":
+      return <LayoutGrid {...iconProps} />;
+    case "master-barang":
+      return <Package {...iconProps} />;
+    case "stock-masuk":
+      return <ArrowDown {...iconProps} />;
+    case "stock-keluar":
+      return <ArrowUp {...iconProps} />;
+    case "recap-stock":
+      return <BoxIcon {...iconProps} />;
+    case "stock-opname":
+      return <CheckSquare {...iconProps} />;
+    case "laporan":
+      return <FileText {...iconProps} />;
+    default:
+      return <Package {...iconProps} />;
+  }
 }
