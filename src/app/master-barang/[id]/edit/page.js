@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import MasterBarangForm from "@/components/master-barang/MasterBarangForm";
 import { getMasterBarangById } from "@/lib/masterBarangApi";
@@ -8,6 +8,7 @@ import { getMasterBarangById } from "@/lib/masterBarangApi";
 export default function EditMasterBarangPage() {
   const params = useParams();
   const kodeBarang = params.id;
+  const lastFetchedKodeBarangRef = useRef(null);
 
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +16,9 @@ export default function EditMasterBarangPage() {
 
   useEffect(() => {
     if (!kodeBarang) return;
+    if (lastFetchedKodeBarangRef.current === String(kodeBarang)) return;
+
+    lastFetchedKodeBarangRef.current = String(kodeBarang);
 
     async function loadData() {
       setIsLoading(true);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getMasterBarang, deleteMasterBarang } from "@/lib/masterBarangApi";
 import { Plus, Edit2, Trash2, Search, Eye } from "lucide-react";
@@ -36,6 +36,7 @@ export default function MasterBarangList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const hasFetchedInitialData = useRef(false);
 
   async function loadMasterBarang() {
     setIsLoading(true);
@@ -52,6 +53,11 @@ export default function MasterBarangList() {
   }
 
   useEffect(() => {
+    if (hasFetchedInitialData.current) {
+      return;
+    }
+
+    hasFetchedInitialData.current = true;
     loadMasterBarang();
   }, []);
 

@@ -47,7 +47,13 @@ export default function Navbar({
               <p className="font-medium text-gray-900">John Doe</p>
               <p className="text-xs text-gray-500">Admin</p>
             </div>
-            <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-semibold text-sm">JD</div>
+            <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border border-gray-200">
+              <img
+                src="wijaya.jpeg"
+                alt="Admin"
+                className="h-full w-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </div>
