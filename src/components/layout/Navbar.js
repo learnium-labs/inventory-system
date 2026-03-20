@@ -1,4 +1,8 @@
-import { Menu, ChevronLeft, ChevronRight, Search, Bell } from "lucide-react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Menu, ChevronLeft, ChevronRight, Search, Bell, LogOut } from "lucide-react";
+import { clearAuthSession } from "@/lib/authClient";
 
 export default function Navbar({
   title,
@@ -7,6 +11,13 @@ export default function Navbar({
   onOpenMobileSidebar,
   isSidebarCollapsed,
 }) {
+  const router = useRouter();
+
+  function onLogout() {
+    clearAuthSession();
+    router.replace("/login");
+  }
+
   return (
     <header className="sticky top-0 z-20 border-b border-gray-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
       <div className="flex w-full items-center justify-between gap-4">
@@ -44,15 +55,38 @@ export default function Navbar({
 
           <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
             <div className="hidden flex-col items-end text-sm sm:flex">
-              <p className="font-medium text-gray-900">John Doe</p>
+              <p className="font-medium text-gray-900">Andi Bayu S</p>
               <p className="text-xs text-gray-500">Admin</p>
             </div>
-            <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border border-gray-200">
-              <img
-                src="wijaya.jpeg"
-                alt="Admin"
-                className="h-full w-full object-cover"
-              />
+            <div className="dropdown dropdown-end">
+              <button
+                type="button"
+                tabIndex={0}
+                className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border border-gray-200"
+                aria-label="Menu pengguna"
+              >
+                <img
+                  src="wijaya.jpeg"
+                  alt="Admin"
+                  className="h-full w-full object-cover"
+                />
+              </button>
+
+              <ul
+                tabIndex={0}
+                className="dropdown-content z-[60] mt-2 w-44 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+              >
+                <li>
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
