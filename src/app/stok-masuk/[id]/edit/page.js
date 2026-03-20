@@ -2,39 +2,46 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import MasterBarangForm from "@/components/master-barang/MasterBarangForm";
-import { getMasterBarangById } from "@/lib/masterBarangApi";
+import StokMasukForm from "@/components/stok-masuk/StokMasukForm";
+import { getStokMasuk } from "@/lib/stokMasukApi";
 
-export default function EditMasterBarangPage() {
+export default function EditStokMasukPage() {
   const params = useParams();
-  const kodeBarang = params.id;
-  const lastFetchedKodeBarangRef = useRef(null);
+  const transaksiId = params.id;
+  const lastFetchedIdRef = useRef(null);
 
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!kodeBarang) return;
-    if (lastFetchedKodeBarangRef.current === String(kodeBarang)) return;
+    if (!transaksiId) return;
+    if (lastFetchedIdRef.current === String(transaksiId)) return;
 
-    lastFetchedKodeBarangRef.current = String(kodeBarang);
+    lastFetchedIdRef.current = String(transaksiId);
 
     async function loadData() {
       setIsLoading(true);
       setError("");
+
       try {
-        const item = await getMasterBarangById(kodeBarang);
+        const items = await getStokMasuk();
+        const item = items.find((entry) => String(entry.id) === String(transaksiId));
+
+        if (!item) {
+          throw new Error("Data transaksi tidak ditemukan.");
+        }
+
         setData(item);
       } catch (err) {
-        setError(err.message || "Gagal memuat data barang.");
+        setError(err.message || "Gagal memuat data transaksi stok masuk.");
       } finally {
         setIsLoading(false);
       }
     }
 
     loadData();
-  }, [kodeBarang]);
+  }, [transaksiId]);
 
   if (isLoading) {
     return (
@@ -60,10 +67,10 @@ export default function EditMasterBarangPage() {
     return (
       <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-6 py-4 text-yellow-700">
         <p className="font-semibold">Data Tidak Ditemukan</p>
-        <p className="mt-1">Barang dengan ID tersebut tidak dapat ditemukan.</p>
+        <p className="mt-1">Transaksi dengan ID tersebut tidak dapat ditemukan.</p>
       </div>
     );
   }
 
-  return <MasterBarangForm mode="edit" initialData={data} />;
+  return <StokMasukForm mode="edit" initialData={data} />;
 }

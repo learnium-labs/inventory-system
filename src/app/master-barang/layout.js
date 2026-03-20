@@ -5,7 +5,7 @@ import DashboardShell from "@/components/layout/DashboardShell";
 const menuItems = [
   { key: "dashboard", label: "Dashboard Analisis" },
   { key: "master-barang", label: "Master Barang" },
-  { key: "stock-masuk", label: "Stock Masuk" },
+  { key: "stok-masuk", label: "Stok Masuk" },
   { key: "stock-keluar", label: "Stock Keluar" },
   { key: "recap-stock", label: "Recap Stock" },
   { key: "stock-opname", label: "Stock Opname" },

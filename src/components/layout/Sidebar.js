@@ -53,7 +53,7 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
     const routes = {
       dashboard: "/",
       "master-barang": "/master-barang",
-      "stock-masuk": "/stock-masuk",
+      "stok-masuk": "/stok-masuk",
       "stock-keluar": "/stock-keluar",
       "recap-stock": "/recap-stock",
       "stock-opname": "/stock-opname",
@@ -73,13 +73,17 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
     <>
       <div className="flex h-20 items-center justify-between border-b border-gray-700 px-4 py-6">
         <div className={`flex items-center gap-3 ${collapsed ? "mx-auto" : ""}`}>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400">
-            <LayoutGrid size={20} />
+          <div className="h-11 w-11 overflow-hidden rounded-full border border-blue-500/30 bg-blue-600/10">
+            <img
+              src="/logo.jpeg"
+              alt="Logo"
+              className="h-full w-full object-cover"
+            />
           </div>
           {!collapsed && (
             <div>
-              <h1 className="text-base font-bold text-white">Inventory</h1>
-              <p className="text-[10px] text-gray-400">Management</p>
+              <h1 className="text-xl font-bold text-white">Inventory</h1>
+              <p className="text-xs text-gray-400">Management</p>
             </div>
           )}
         </div>
@@ -95,7 +99,10 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
         <ul className="space-y-1">
           {items.map((item) => {
             const isActive = item.key === activeKey;
-            const isReady = item.key === "master-barang" || item.key === "dashboard";
+            const isReady =
+              item.key === "master-barang" ||
+              item.key === "dashboard" ||
+              item.key === "stok-masuk";
             const icon = getMenuIcon(item.key);
 
             return (
@@ -145,7 +152,7 @@ function getMenuIcon(key) {
       return <LayoutGrid {...iconProps} />;
     case "master-barang":
       return <Package {...iconProps} />;
-    case "stock-masuk":
+    case "stok-masuk":
       return <ArrowDown {...iconProps} />;
     case "stock-keluar":
       return <ArrowUp {...iconProps} />;
