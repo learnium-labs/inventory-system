@@ -53,7 +53,7 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
     const routes = {
       dashboard: "/",
       "master-barang": "/master-barang",
-      "stock-masuk": "/stock-masuk",
+      "stok-masuk": "/stok-masuk",
       "stock-keluar": "/stock-keluar",
       "recap-stock": "/recap-stock",
       "stock-opname": "/stock-opname",
@@ -75,7 +75,7 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
         <div className={`flex items-center gap-3 ${collapsed ? "mx-auto" : ""}`}>
           <div className="h-11 w-11 overflow-hidden rounded-full border border-blue-500/30 bg-blue-600/10">
             <img
-              src="logo.jpeg"
+              src="/logo.jpeg"
               alt="Logo"
               className="h-full w-full object-cover"
             />
@@ -99,7 +99,10 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
         <ul className="space-y-1">
           {items.map((item) => {
             const isActive = item.key === activeKey;
-            const isReady = item.key === "master-barang" || item.key === "dashboard";
+            const isReady =
+              item.key === "master-barang" ||
+              item.key === "dashboard" ||
+              item.key === "stok-masuk";
             const icon = getMenuIcon(item.key);
 
             return (
@@ -149,7 +152,7 @@ function getMenuIcon(key) {
       return <LayoutGrid {...iconProps} />;
     case "master-barang":
       return <Package {...iconProps} />;
-    case "stock-masuk":
+    case "stok-masuk":
       return <ArrowDown {...iconProps} />;
     case "stock-keluar":
       return <ArrowUp {...iconProps} />;

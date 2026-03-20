@@ -66,7 +66,7 @@ export default function Navbar({
                 aria-label="Menu pengguna"
               >
                 <img
-                  src="wijaya.jpeg"
+                  src="/wijaya.jpeg"
                   alt="Admin"
                   className="h-full w-full object-cover"
                 />
