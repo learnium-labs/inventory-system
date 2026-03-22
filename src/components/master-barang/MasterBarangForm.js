@@ -1,16 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { addMasterBarang, updateMasterBarang } from "@/lib/masterBarangApi";
 import { ChevronLeft, Check } from "lucide-react";
+import Select from "react-select";
 
 async function getSwal() {
-  const module = await import("sweetalert2");
-  return module.default;
+  const sweetAlertModule = await import("sweetalert2");
+  return sweetAlertModule.default;
 }
 
-const CATEGORIES = ["Elektronik", "Furniture", "Pakaian", "Makanan", "Lainnya"];
+const CATEGORIES = [
+  "Elektronik",
+  "Furniture",
+  "Pakaian",
+  "Makanan",
+  "Minuman",
+  "Kebutuhan Bayi",
+  "Kesehatan & Obat",
+  "Perawatan Tubuh",
+  "Kebersihan Rumah",
+  "Rumah Tangga",
+  "Alat Tulis",
+  "Aksesoris",
+  "Lainnya",
+];
 const SATUAN = ["unit", "pcs", "box", "kg", "liter", "meter"];
 const FORMATTED_NUMBER_FIELDS = ["stok", "harga_beli", "harga_jual", "stok_min"];
 
@@ -56,6 +71,14 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const kategoriOptions = useMemo(() => {
+    return CATEGORIES.map((kategori) => ({ value: kategori, label: kategori }));
+  }, []);
+
+  const selectedKategoriOption = useMemo(() => {
+    return kategoriOptions.find((option) => option.value === form.kategori) || null;
+  }, [kategoriOptions, form.kategori]);
+
   function onChangeForm(e) {
     const { name, value } = e.target;
 
@@ -65,6 +88,13 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
     }
 
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function onChangeKategori(selectedOption) {
+    setForm((prev) => ({
+      ...prev,
+      kategori: selectedOption?.value || "",
+    }));
   }
 
   async function onSubmit(e) {
@@ -180,20 +210,38 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
             </FormField>
 
             <FormField label="Kategori" required>
-              <select
-                name="kategori"
-                value={form.kategori}
-                onChange={onChangeForm}
+              <Select
+                inputId="kategori"
+                options={kategoriOptions}
+                value={selectedKategoriOption}
+                onChange={onChangeKategori}
+                placeholder="Cari / pilih kategori..."
+                isClearable
+                noOptionsMessage={() => "Kategori tidak ditemukan"}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                className="text-sm"
+                classNamePrefix="master-kategori-select"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    minHeight: 42,
+                    borderRadius: 8,
+                    borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
+                    boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
+                    backgroundColor: state.isDisabled ? "#f9fafb" : "#ffffff",
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused ? "#eff6ff" : "#ffffff",
+                    color: "#111827",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 60,
+                  }),
+                }}
               >
-                <option value="">-- Pilih Kategori --</option>
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              </Select>
             </FormField>
 
             <FormField label="Satuan" required>

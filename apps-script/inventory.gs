@@ -5,6 +5,14 @@ const VALID_CATEGORIES = [
   "Furniture",
   "Pakaian",
   "Makanan",
+  "Minuman",
+  "Kebutuhan Bayi",
+  "Kesehatan & Obat",
+  "Perawatan Tubuh",
+  "Kebersihan Rumah",
+  "Rumah Tangga",
+  "Alat Tulis",
+  "Aksesoris",
   "Lainnya",
 ];
 const VALID_SATUAN = ["unit", "pcs", "box", "kg", "liter", "meter"];

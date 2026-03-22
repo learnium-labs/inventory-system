@@ -285,7 +285,7 @@ export default function MasterBarangList() {
                     <TableCell className="font-semibold">{(currentPage - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell className="font-medium">{item.nama}</TableCell>
                     <TableCell>{item.kategori}</TableCell>
-                    <TableCell>{item.satuan}</TableCell>
+                    <TableCell className="capitalize">{item.satuan}</TableCell>
                     <TableCell>{normalizeNumber(item.harga_beli).toLocaleString("id-ID")}</TableCell>
                     <TableCell>{normalizeNumber(item.harga_jual).toLocaleString("id-ID")}</TableCell>
                     <TableCell>
@@ -396,7 +396,7 @@ export default function MasterBarangList() {
               </div>
               <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
                 <span className="font-medium text-gray-500">Satuan</span>
-                <span className="font-semibold text-gray-900">{selectedItem.satuan || "-"}</span>
+                <span className="font-semibold text-gray-900 capitalize">{selectedItem.satuan || "-"}</span>
               </div>
               <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
                 <span className="font-medium text-gray-500">Dibuat Pada</span>
