@@ -247,6 +247,14 @@ function addMasterBarang(data) {
     newData.kode_barang = generateKodeBarang();
   }
 
+  if (
+    newData.stok === undefined ||
+    newData.stok === null ||
+    newData.stok === ""
+  ) {
+    newData.stok = 0;
+  }
+
   if (!newData.created_at) {
     newData.created_at = getCurrentTimestamp();
   }
@@ -291,7 +299,7 @@ function updateMasterBarang(data) {
   const existingRow = values[targetRowIndex - 1];
   const updateData = mapRowToObject(headerRow, existingRow);
   Object.keys(data).forEach(function (key) {
-    if (key !== "kode_barang" && key !== "created_at") {
+    if (key !== "kode_barang" && key !== "created_at" && key !== "stok") {
       updateData[key] = data[key];
     }
   });
@@ -655,7 +663,7 @@ function validatePayload(data, isNew) {
   }
 
   // Required fields
-  const requiredFields = ["nama", "kategori", "satuan", "stok", "stok_min"];
+  const requiredFields = ["nama", "kategori", "satuan", "stok_min"];
 
   requiredFields.forEach(function (field) {
     if (

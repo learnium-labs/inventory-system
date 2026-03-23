@@ -27,7 +27,7 @@ const CATEGORIES = [
   "Lainnya",
 ];
 const SATUAN = ["unit", "pcs", "box", "kg", "liter", "meter"];
-const FORMATTED_NUMBER_FIELDS = ["stok", "harga_beli", "harga_jual", "stok_min"];
+const FORMATTED_NUMBER_FIELDS = ["harga_beli", "harga_jual", "stok_min"];
 
 function formatThousands(value) {
   const digitsOnly = String(value ?? "").replace(/\D/g, "");
@@ -49,7 +49,6 @@ function buildInitialForm(data) {
     satuan: "",
     harga_beli: "",
     harga_jual: "",
-    stok: "",
     stok_min: "",
   };
 
@@ -142,7 +141,6 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
         satuan: form.satuan,
         harga_beli: parseFormattedNumber(form.harga_beli),
         harga_jual: parseFormattedNumber(form.harga_jual),
-        stok: parseFormattedNumber(form.stok),
         stok_min: parseFormattedNumber(form.stok_min),
       };
 
@@ -188,6 +186,9 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
           <h3 className="text-2xl font-bold text-gray-900">{isEditMode ? "Edit Barang" : "Tambah Barang Baru"}</h3>
           <p className="mt-1 text-sm text-gray-600">
             {isEditMode ? "Perbarui informasi produk." : "Tambahkan produk baru ke inventory."}
+          </p>
+          <p className="mt-1 text-xs font-medium text-blue-700">
+            Stok dikelola melalui menu Stok Masuk/Stok Keluar.
           </p>
         </div>
       </div>
@@ -259,19 +260,6 @@ export default function MasterBarangForm({ mode = "add", initialData = null }) {
                   </option>
                 ))}
               </select>
-            </FormField>
-
-            <FormField label="Stok Awal">
-              <input
-                type="text"
-                inputMode="numeric"
-                name="stok"
-                value={form.stok}
-                onChange={onChangeForm}
-                placeholder="0"
-                disabled={isSubmitting}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-              />
             </FormField>
 
             <FormField label="Harga Beli (Rp)">
