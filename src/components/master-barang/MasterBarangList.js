@@ -168,15 +168,15 @@ export default function MasterBarangList() {
         <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Produk</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalProduk}</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalProduk.toLocaleString("id-ID")}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Stok</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalStok}</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalStok.toLocaleString("id-ID")}</p>
           </div>
           <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
             <p className="text-xs font-medium text-orange-600 uppercase tracking-wider">Hampir Habis</p>
-            <p className="mt-1 text-2xl font-bold text-orange-600">{stockSummary.hampirHabis}</p>
+            <p className="mt-1 text-2xl font-bold text-orange-600">{stockSummary.hampirHabis.toLocaleString("id-ID")}</p>
           </div>
         </div>
       </div>

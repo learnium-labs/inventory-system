@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Menu, ChevronLeft, ChevronRight, Search, Bell, LogOut } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { clearAuthSession } from "@/lib/authClient";
 
 export default function Navbar({
@@ -43,17 +43,7 @@ export default function Navbar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <div className="hidden items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 sm:flex">
-            <Search size={16} className="text-gray-500" />
-            <input type="text" placeholder="Cari barang..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none" />
-          </div>
-
-          <button type="button" className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100" aria-label="Notifikasi">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-          </button>
-
-          <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
+          <div className="flex items-center gap-3 border-l sm:border-0 border-gray-200 pl-4">
             <div className="hidden flex-col items-end text-sm sm:flex">
               <p className="font-medium text-gray-900">Andi Bayu S</p>
               <p className="text-xs text-gray-500">Admin</p>

@@ -2,7 +2,7 @@ import AnalyticsCards from "@/components/dashboard/AnalyticsCards";
 import DashboardShell from "@/components/layout/DashboardShell";
 
 const menuItems = [
-  { key: "dashboard", label: "Dashboard Analisis" },
+  { key: "dashboard", label: "Dashboard" },
   { key: "master-barang", label: "Master Barang" },
   { key: "stok-masuk", label: "Stok Masuk" },
   { key: "stok-keluar", label: "Stok Keluar" },
