@@ -214,17 +214,24 @@ function getAllStokKeluar() {
 }
 
 function generateKodeBarang() {
-  const sheet = getSheet();
-  const allData = getAllMasterBarang();
-  const maxNum = Math.max(
-    0,
-    ...allData.map(function (item) {
-      const code = String(item.kode_barang || "");
-      const match = code.match(/BRG(\d+)/);
-      return match ? parseInt(match[1], 10) : 0;
+  const existingCodes = new Set(
+    getAllMasterBarang().map(function (item) {
+      return String(item.kode_barang || "").trim();
     }),
   );
-  return "BRG" + String(maxNum + 1).padStart(5, "0");
+
+  for (var i = 0; i < 20; i++) {
+    const shortUuid = Utilities.getUuid().split("-")[0].toUpperCase();
+    const kode = "BRG-" + shortUuid;
+
+    if (!existingCodes.has(kode)) {
+      return kode;
+    }
+  }
+
+  return (
+    "BRG-" + Utilities.getUuid().replace(/-/g, "").substring(0, 8).toUpperCase()
+  );
 }
 
 function generateStokMasukId() {
