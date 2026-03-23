@@ -55,7 +55,7 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
       "master-barang": "/master-barang",
       "stok-masuk": "/stok-masuk",
       "stok-keluar": "/stok-keluar",
-      "recap-stock": "/recap-stock",
+      "rekap-stok": "/rekap-stok",
       "stock-opname": "/stock-opname",
       laporan: "/laporan",
     };
@@ -103,7 +103,8 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
               item.key === "master-barang" ||
               item.key === "dashboard" ||
               item.key === "stok-masuk" ||
-              item.key === "stok-keluar";
+              item.key === "stok-keluar" ||
+              item.key === "rekap-stok";
             const icon = getMenuIcon(item.key);
 
             return (
@@ -157,7 +158,7 @@ function getMenuIcon(key) {
       return <ArrowDown {...iconProps} />;
     case "stok-keluar":
       return <ArrowUp {...iconProps} />;
-    case "recap-stock":
+    case "rekap-stok":
       return <BoxIcon {...iconProps} />;
     case "stock-opname":
       return <CheckSquare {...iconProps} />;
