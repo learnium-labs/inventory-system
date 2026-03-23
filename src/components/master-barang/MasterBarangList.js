@@ -6,24 +6,13 @@ import { getMasterBarang, deleteMasterBarang } from "@/lib/masterBarangApi";
 import { Plus, Edit2, Trash2, Search, Eye } from "lucide-react";
 
 async function getSwal() {
-  const module = await import("sweetalert2");
-  return module.default;
+  const sweetAlertModule = await import("sweetalert2");
+  return sweetAlertModule.default;
 }
 
 function normalizeNumber(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function formatDateTime(value) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-  if (!Number.isNaN(date.getTime())) {
-    return date.toLocaleString("id-ID");
-  }
-
-  return String(value);
 }
 
 const PAGE_SIZE = 15;
@@ -34,7 +23,6 @@ export default function MasterBarangList() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const hasFetchedInitialData = useRef(false);
 
@@ -159,14 +147,6 @@ export default function MasterBarangList() {
     }
   }
 
-  function openDetail(item) {
-    setSelectedItem(item);
-  }
-
-  function closeDetail() {
-    setSelectedItem(null);
-  }
-
   return (
     <section className="rounded-lg border border-gray-200 bg-white shadow-sm">
       <div className="border-b border-gray-200 p-6">
@@ -188,15 +168,15 @@ export default function MasterBarangList() {
         <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Produk</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalProduk}</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalProduk.toLocaleString("id-ID")}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Stok</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalStok}</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900">{stockSummary.totalStok.toLocaleString("id-ID")}</p>
           </div>
           <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
             <p className="text-xs font-medium text-orange-600 uppercase tracking-wider">Hampir Habis</p>
-            <p className="mt-1 text-2xl font-bold text-orange-600">{stockSummary.hampirHabis}</p>
+            <p className="mt-1 text-2xl font-bold text-orange-600">{stockSummary.hampirHabis.toLocaleString("id-ID")}</p>
           </div>
         </div>
       </div>
@@ -279,13 +259,12 @@ export default function MasterBarangList() {
                 return (
                   <tr
                     key={item.kode_barang}
-                    onClick={() => openDetail(item)}
-                    className={`border-t border-gray-200 text-gray-900 cursor-pointer ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/40`}
+                    className={`border-t border-gray-200 text-gray-900 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
                   >
                     <TableCell className="font-semibold">{(currentPage - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell className="font-medium">{item.nama}</TableCell>
                     <TableCell>{item.kategori}</TableCell>
-                    <TableCell>{item.satuan}</TableCell>
+                    <TableCell className="capitalize">{item.satuan}</TableCell>
                     <TableCell>{normalizeNumber(item.harga_beli).toLocaleString("id-ID")}</TableCell>
                     <TableCell>{normalizeNumber(item.harga_jual).toLocaleString("id-ID")}</TableCell>
                     <TableCell>
@@ -300,21 +279,16 @@ export default function MasterBarangList() {
                     <TableCell>{stokMin}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            openDetail(item);
-                          }}
+                        <Link
+                          href={`/master-barang/${item.kode_barang}`}
                           className="inline-flex items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-700 hover:bg-gray-50 transition"
                           aria-label="Detail"
                           title="Detail"
                         >
                           <Eye size={14} />
-                        </button>
+                        </Link>
                         <Link
                           href={`/master-barang/${item.kode_barang}/edit`}
-                          onClick={(event) => event.stopPropagation()}
                           className="inline-flex items-center justify-center rounded-lg border border-blue-300 p-2 text-blue-700 hover:bg-blue-50 transition"
                           aria-label="Edit"
                           title="Edit"
@@ -323,10 +297,7 @@ export default function MasterBarangList() {
                         </Link>
                         <button
                           type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDelete(item.kode_barang);
-                          }}
+                          onClick={() => onDelete(item.kode_barang)}
                           className="inline-flex items-center justify-center rounded-lg border border-red-300 p-2 text-red-700 hover:bg-red-50 transition"
                           aria-label="Hapus"
                           title="Hapus"
@@ -375,64 +346,6 @@ export default function MasterBarangList() {
         )}
       </div>
 
-      {selectedItem && (
-        <div className="modal modal-open">
-          <div className="modal-box max-w-2xl border border-gray-200 bg-white text-gray-900 shadow-xl">
-            <h3 className="text-lg font-bold text-gray-900">Detail Barang</h3>
-            <p className="mt-1 text-sm text-gray-500">Informasi lengkap master barang</p>
-
-            <div className="mt-4 rounded-lg border border-gray-200">
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Kode Barang</span>
-                <span className="font-semibold text-gray-900">{selectedItem.kode_barang || "-"}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Nama</span>
-                <span className="font-semibold text-gray-900">{selectedItem.nama || "-"}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Kategori</span>
-                <span className="font-semibold text-gray-900">{selectedItem.kategori || "-"}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Satuan</span>
-                <span className="font-semibold text-gray-900">{selectedItem.satuan || "-"}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Dibuat Pada</span>
-                <span className="font-semibold text-gray-900">{formatDateTime(selectedItem.created_at)}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Harga Beli</span>
-                <span className="font-semibold text-gray-900">{normalizeNumber(selectedItem.harga_beli).toLocaleString("id-ID")}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Harga Jual</span>
-                <span className="font-semibold text-gray-900">{normalizeNumber(selectedItem.harga_jual).toLocaleString("id-ID")}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 border-b border-gray-200 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Stok</span>
-                <span className="font-semibold text-gray-900">{normalizeNumber(selectedItem.stok)}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 px-4 py-3 text-sm">
-                <span className="font-medium text-gray-500">Stok Minimum</span>
-                <span className="font-semibold text-gray-900">{normalizeNumber(selectedItem.stok_min)}</span>
-              </div>
-            </div>
-
-            <div className="modal-action">
-              <button
-                type="button"
-                onClick={closeDetail}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-          <button type="button" className="modal-backdrop bg-black/40" onClick={closeDetail} aria-label="Close modal" />
-        </div>
-      )}
     </section>
   );
 }

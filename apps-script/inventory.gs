@@ -1,10 +1,19 @@
 const SHEET_NAME = "master_barang";
 const STOK_MASUK_SHEET_NAME = "stok_masuk";
+const STOK_KELUAR_SHEET_NAME = "stok_keluar";
 const VALID_CATEGORIES = [
   "Elektronik",
   "Furniture",
   "Pakaian",
   "Makanan",
+  "Minuman",
+  "Kebutuhan Bayi",
+  "Kesehatan & Obat",
+  "Perawatan Tubuh",
+  "Kebersihan Rumah",
+  "Rumah Tangga",
+  "Alat Tulis",
+  "Aksesoris",
   "Lainnya",
 ];
 const VALID_SATUAN = ["unit", "pcs", "box", "kg", "liter", "meter"];
@@ -19,6 +28,10 @@ const ACTIONS = {
   stokMasukAdd: "stok-masuk-add",
   stokMasukUpdate: "stok-masuk-update",
   stokMasukRemove: "stok-masuk-delete",
+  stokKeluarGet: "stok-keluar-get",
+  stokKeluarAdd: "stok-keluar-add",
+  stokKeluarUpdate: "stok-keluar-update",
+  stokKeluarRemove: "stok-keluar-delete",
 };
 
 function getCurrentTimestamp() {
@@ -43,6 +56,10 @@ function doGet(e) {
 
     if (action === ACTIONS.stokMasukGet) {
       return okResponse(getAllStokMasuk());
+    }
+
+    if (action === ACTIONS.stokKeluarGet) {
+      return okResponse(getAllStokKeluar());
     }
 
     return errorResponse("Invalid GET action");
@@ -87,6 +104,21 @@ function doPost(e) {
       return okResponse(null, "Transaksi stok masuk berhasil dihapus");
     }
 
+    if (action === ACTIONS.stokKeluarAdd) {
+      addStokKeluar(payload);
+      return okResponse(null, "Transaksi stok keluar berhasil ditambahkan");
+    }
+
+    if (action === ACTIONS.stokKeluarUpdate) {
+      updateStokKeluar(payload);
+      return okResponse(null, "Transaksi stok keluar berhasil diperbarui");
+    }
+
+    if (action === ACTIONS.stokKeluarRemove) {
+      deleteStokKeluar(payload.id);
+      return okResponse(null, "Transaksi stok keluar berhasil dihapus");
+    }
+
     return errorResponse("Invalid POST action");
   } catch (error) {
     return errorResponse(error.message);
@@ -108,6 +140,16 @@ function getStokMasukSheet() {
   );
   if (!sheet) {
     throw new Error("Sheet stok_masuk tidak ditemukan");
+  }
+  return sheet;
+}
+
+function getStokKeluarSheet() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+    STOK_KELUAR_SHEET_NAME,
+  );
+  if (!sheet) {
+    throw new Error("Sheet stok_keluar tidak ditemukan");
   }
   return sheet;
 }
@@ -157,22 +199,47 @@ function getAllStokMasuk() {
   });
 }
 
+function getAllStokKeluar() {
+  const sheet = getStokKeluarSheet();
+  const data = sheet.getDataRange().getValues();
+
+  if (data.length <= 1) {
+    return [];
+  }
+
+  const headers = data.shift();
+  return data.map(function (row) {
+    return mapRowToObject(headers, row);
+  });
+}
+
 function generateKodeBarang() {
-  const sheet = getSheet();
-  const allData = getAllMasterBarang();
-  const maxNum = Math.max(
-    0,
-    ...allData.map(function (item) {
-      const code = String(item.kode_barang || "");
-      const match = code.match(/BRG(\d+)/);
-      return match ? parseInt(match[1], 10) : 0;
+  const existingCodes = new Set(
+    getAllMasterBarang().map(function (item) {
+      return String(item.kode_barang || "").trim();
     }),
   );
-  return "BRG" + String(maxNum + 1).padStart(5, "0");
+
+  for (var i = 0; i < 20; i++) {
+    const shortUuid = Utilities.getUuid().split("-")[0].toUpperCase();
+    const kode = "BRG-" + shortUuid;
+
+    if (!existingCodes.has(kode)) {
+      return kode;
+    }
+  }
+
+  return (
+    "BRG-" + Utilities.getUuid().replace(/-/g, "").substring(0, 8).toUpperCase()
+  );
 }
 
 function generateStokMasukId() {
   return "SM-" + Utilities.getUuid();
+}
+
+function generateStokKeluarId() {
+  return "SK-" + Utilities.getUuid();
 }
 
 function addMasterBarang(data) {
@@ -185,6 +252,14 @@ function addMasterBarang(data) {
   // Generate auto kode_barang jika belum ada
   if (!newData.kode_barang) {
     newData.kode_barang = generateKodeBarang();
+  }
+
+  if (
+    newData.stok === undefined ||
+    newData.stok === null ||
+    newData.stok === ""
+  ) {
+    newData.stok = 0;
   }
 
   if (!newData.created_at) {
@@ -231,7 +306,7 @@ function updateMasterBarang(data) {
   const existingRow = values[targetRowIndex - 1];
   const updateData = mapRowToObject(headerRow, existingRow);
   Object.keys(data).forEach(function (key) {
-    if (key !== "kode_barang" && key !== "created_at") {
+    if (key !== "kode_barang" && key !== "created_at" && key !== "stok") {
       updateData[key] = data[key];
     }
   });
@@ -406,6 +481,145 @@ function deleteStokMasuk(id) {
   throw new Error("Data transaksi stok masuk tidak ditemukan");
 }
 
+function addStokKeluar(data) {
+  validateStokKeluarPayload(data);
+
+  const stokKeluarSheet = getStokKeluarSheet();
+  const stokKeluarHeaders = getHeaders(stokKeluarSheet);
+
+  const jumlah = Number(data.jumlah);
+  if (jumlah <= 0) {
+    throw new Error("jumlah harus lebih dari 0");
+  }
+
+  const barang = getMasterBarangById(data.kode_barang);
+  incrementMasterStockByKode(data.kode_barang, -jumlah);
+
+  const payload = Object.assign({}, data, {
+    id: data.id || generateStokKeluarId(),
+    tanggal:
+      data.tanggal ||
+      Utilities.formatDate(
+        new Date(),
+        Session.getScriptTimeZone(),
+        "yyyy-MM-dd",
+      ),
+    nama_barang: barang.nama || "",
+    jumlah: jumlah,
+    created_at: data.created_at || getCurrentTimestamp(),
+  });
+
+  const row = stokKeluarHeaders.map(function (header) {
+    return payload[header] !== undefined ? payload[header] : "";
+  });
+
+  stokKeluarSheet.appendRow(row);
+}
+
+function updateStokKeluar(data) {
+  if (!data || typeof data !== "object") {
+    throw new Error("Payload update stok keluar tidak valid");
+  }
+
+  if (!data.id) {
+    throw new Error("id transaksi wajib diisi untuk update");
+  }
+
+  validateStokKeluarPayload(data);
+
+  const stokKeluarSheet = getStokKeluarSheet();
+  const values = stokKeluarSheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    throw new Error("Data stok keluar kosong");
+  }
+
+  const headers = values[0];
+  const idIndex = headers.indexOf("id");
+
+  if (idIndex === -1) {
+    throw new Error("Kolom id pada stok_keluar tidak ditemukan");
+  }
+
+  let targetRowIndex = -1;
+  for (var i = 1; i < values.length; i++) {
+    if (String(values[i][idIndex]) === String(data.id)) {
+      targetRowIndex = i + 1;
+      break;
+    }
+  }
+
+  if (targetRowIndex === -1) {
+    throw new Error("Data transaksi stok keluar tidak ditemukan untuk update");
+  }
+
+  const existingRow = values[targetRowIndex - 1];
+  const existingData = mapRowToObject(headers, existingRow);
+  const oldKodeBarang = existingData.kode_barang;
+  const oldJumlah = Number(existingData.jumlah) || 0;
+
+  const newJumlah = Number(data.jumlah);
+  if (newJumlah <= 0) {
+    throw new Error("jumlah harus lebih dari 0");
+  }
+
+  const barang = getMasterBarangById(data.kode_barang);
+
+  incrementMasterStockByKode(oldKodeBarang, oldJumlah);
+  incrementMasterStockByKode(data.kode_barang, -newJumlah);
+
+  const updatedData = Object.assign({}, existingData, {
+    tanggal: data.tanggal || existingData.tanggal,
+    kode_barang: data.kode_barang,
+    nama_barang: barang.nama || "",
+    jumlah: newJumlah,
+    penerima: data.penerima || "",
+    keterangan: data.keterangan || "",
+  });
+
+  const nextRow = headers.map(function (header) {
+    return updatedData[header] !== undefined ? updatedData[header] : "";
+  });
+
+  stokKeluarSheet
+    .getRange(targetRowIndex, 1, 1, nextRow.length)
+    .setValues([nextRow]);
+}
+
+function deleteStokKeluar(id) {
+  if (!id) {
+    throw new Error("id transaksi wajib diisi");
+  }
+
+  const stokKeluarSheet = getStokKeluarSheet();
+  const values = stokKeluarSheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    throw new Error("Data stok keluar kosong");
+  }
+
+  const headers = values[0];
+  const idIndex = headers.indexOf("id");
+  const kodeIndex = headers.indexOf("kode_barang");
+  const jumlahIndex = headers.indexOf("jumlah");
+
+  if (idIndex === -1) {
+    throw new Error("Kolom id pada stok_keluar tidak ditemukan");
+  }
+
+  for (var i = 1; i < values.length; i++) {
+    if (String(values[i][idIndex]) === String(id)) {
+      const kodeBarang = values[i][kodeIndex];
+      const jumlah = Number(values[i][jumlahIndex]) || 0;
+      incrementMasterStockByKode(kodeBarang, jumlah);
+      stokKeluarSheet.deleteRow(i + 1);
+      return;
+    }
+  }
+
+  throw new Error("Data transaksi stok keluar tidak ditemukan");
+}
+
 function incrementMasterStockByKode(kodeBarang, deltaJumlah) {
   const sheet = getSheet();
   const values = sheet.getDataRange().getValues();
@@ -456,7 +670,7 @@ function validatePayload(data, isNew) {
   }
 
   // Required fields
-  const requiredFields = ["nama", "kategori", "satuan", "stok", "stok_min"];
+  const requiredFields = ["nama", "kategori", "satuan", "stok_min"];
 
   requiredFields.forEach(function (field) {
     if (
@@ -510,6 +724,27 @@ function validateStokMasukPayload(data) {
       String(data[field]).trim() === ""
     ) {
       throw new Error("Field wajib stok masuk: " + field);
+    }
+  });
+
+  if (isNaN(Number(data.jumlah)) || Number(data.jumlah) <= 0) {
+    throw new Error("jumlah harus berupa angka dan lebih dari 0");
+  }
+}
+
+function validateStokKeluarPayload(data) {
+  if (!data || typeof data !== "object") {
+    throw new Error("Payload stok keluar tidak valid");
+  }
+
+  const requiredFields = ["kode_barang", "jumlah"];
+  requiredFields.forEach(function (field) {
+    if (
+      data[field] === undefined ||
+      data[field] === null ||
+      String(data[field]).trim() === ""
+    ) {
+      throw new Error("Field wajib stok keluar: " + field);
     }
   });
 

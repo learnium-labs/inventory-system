@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LayoutGrid, Package, ArrowDown, ArrowUp, BoxIcon, CheckSquare, FileText, X } from "lucide-react";
+import { LayoutGrid, Package, ArrowDown, ArrowUp, BoxIcon, CheckSquare, FileText, X, Clock3 } from "lucide-react";
 
 export default function Sidebar({
   items,
@@ -54,8 +54,8 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
       dashboard: "/",
       "master-barang": "/master-barang",
       "stok-masuk": "/stok-masuk",
-      "stock-keluar": "/stock-keluar",
-      "recap-stock": "/recap-stock",
+      "stok-keluar": "/stok-keluar",
+      "rekap-stok": "/rekap-stok",
       "stock-opname": "/stock-opname",
       laporan: "/laporan",
     };
@@ -63,6 +63,15 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
   };
 
   const handleMenuClick = (key) => {
+    const isReady =
+      key === "master-barang" ||
+      key === "dashboard" ||
+      key === "stok-masuk" ||
+      key === "stok-keluar" ||
+      key === "rekap-stok";
+
+    if (!isReady) return;
+
     const route = getRouteFromKey(key);
     router.push(route);
     if (isMobile) {
@@ -102,7 +111,9 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
             const isReady =
               item.key === "master-barang" ||
               item.key === "dashboard" ||
-              item.key === "stok-masuk";
+              item.key === "stok-masuk" ||
+              item.key === "stok-keluar" ||
+              item.key === "rekap-stok";
             const icon = getMenuIcon(item.key);
 
             return (
@@ -110,12 +121,15 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
                 <button
                   type="button"
                   onClick={() => handleMenuClick(item.key)}
+                  disabled={!isReady}
                   className={`group flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
                     isActive
                       ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800/50 hover:text-white"
+                      : isReady
+                        ? "text-gray-300 hover:bg-gray-800/50 hover:text-white"
+                        : "cursor-not-allowed text-gray-500"
                   }`}
-                  title={collapsed ? item.label : undefined}
+                  title={collapsed ? `${item.label}${isReady ? "" : " (Segera)"}` : undefined}
                 >
                   <div className="flex-shrink-0">
                     {icon}
@@ -123,15 +137,11 @@ function SidebarContent({ items, activeKey, collapsed, isMobile, onCloseMobile, 
                   {!collapsed && (
                     <>
                       <span className="flex-1 truncate text-left">{item.label}</span>
-                      <span
-                        className={`shrink-0 rounded px-2 py-0.5 text-xs font-semibold ${
-                          isReady
-                            ? "bg-green-500/20 text-green-300"
-                            : "bg-gray-700/50 text-gray-400"
-                        }`}
-                      >
-                        {isReady ? "Aktif" : "Soon"}
-                      </span>
+                      {!isReady && (
+                        <span className="shrink-0" title="Segera">
+                          <Clock3 size={16} className="text-gray-400" />
+                        </span>
+                      )}
                     </>
                   )}
                 </button>
@@ -154,9 +164,9 @@ function getMenuIcon(key) {
       return <Package {...iconProps} />;
     case "stok-masuk":
       return <ArrowDown {...iconProps} />;
-    case "stock-keluar":
+    case "stok-keluar":
       return <ArrowUp {...iconProps} />;
-    case "recap-stock":
+    case "rekap-stok":
       return <BoxIcon {...iconProps} />;
     case "stock-opname":
       return <CheckSquare {...iconProps} />;
