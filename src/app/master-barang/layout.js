@@ -6,7 +6,7 @@ const menuItems = [
   { key: "dashboard", label: "Dashboard Analisis" },
   { key: "master-barang", label: "Master Barang" },
   { key: "stok-masuk", label: "Stok Masuk" },
-  { key: "stock-keluar", label: "Stock Keluar" },
+  { key: "stok-keluar", label: "Stok Keluar" },
   { key: "recap-stock", label: "Recap Stock" },
   { key: "stock-opname", label: "Stock Opname" },
   { key: "laporan", label: "Laporan" },
