@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Inventory Management Dashboard",
-  description: "Dashboard inventory modern dan responsif dengan Next.js, Tailwind, DaisyUI, dan Apps Script",
+  description: "Dashboard Inventory Management untuk monitoring operasional dan analisis data inventory.",
 };
 
 export default function RootLayout({ children }) {
